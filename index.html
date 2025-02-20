@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Paper Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Question Paper Generator</h1>
+        
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="syllabus">Upload Syllabus (PDF):</label>
+                <input type="file" id="syllabus" accept=".pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="pos">Upload Program Outcomes (PDF/Text):</label>
+                <input type="file" id="pos" accept=".pdf,.txt" required>
+            </div>
+            <div class="form-group">
+                <label for="numQuestions">Number of Questions:</label>
+                <input type="number" id="numQuestions" min="1" value="5" required>
+            </div>
+            <button type="submit">Generate Question Paper</button>
+        </form>
+
+        <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+            <p>Generating questions, please wait...</p>
+        </div>
+
+        <div id="output" class="output">
+            <h2>Generated Question Paper</h2>
+            <div id="questions"></div>
+            <button id="downloadBtn" style="display: none;">Download as Text</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
