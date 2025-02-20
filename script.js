@@ -1,159 +1,68 @@
-/* Reset default styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
-}
+document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
 
-/* CSS Variables for Consistency */
-:root {
-    --primary-color: #007BFF;
-    --secondary-color: #0056b3;
-    --background-light:rgb(244, 246, 248);
-    --input-bg: #fff;
-    --text-color: #333;
-    --border-color: #ddd;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --spacing-unit: 1rem;
-    --radius: 10px;
-}
+    const syllabusFile = document.getElementById('syllabus').files[0];
+    const posFile = document.getElementById('pos').files[0];
+    const numQuestions = document.getElementById('numQuestions').value;
 
-/* Body */
-body {
-    background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: var(--spacing-unit);
-}
-
-/* Main Container */
-.container {
-    max-width: 750px;
-    width: 100%;
-    background: var(--input-bg);
-    border-radius: var(--radius);
-    box-shadow: 0 5px 10px var(--shadow-color);
-    padding: calc(var(--spacing-unit) * 2);
-    text-align: center;
-}
-
-/* Headings */
-h1 {
-    color: var(--primary-color);
-    font-size: 2rem;
-    margin-bottom: var(--spacing-unit);
-}
-
-/* Form Styling */
-.form-group {
-    margin-bottom: var(--spacing-unit);
-    text-align: left;
-}
-
-label {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 5px;
-}
-
-/* Input Fields */
-input[type="file"],
-input[type="number"] {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    background: var(--input-bg);
-    font-size: 1rem;
-    transition: 0.3s ease;
-}
-
-input[type="file"]:hover,
-input[type="number"]:hover {
-    border-color: var(--primary-color);
-}
-
-input[type="file"]:focus,
-input[type="number"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
-}
-
-/* Buttons */
-button {
-    background: var(--primary-color);
-    color: white;
-    padding: 0.9rem;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s ease;
-    width: 100%;
-    box-shadow: 0 3px 6px var(--shadow-color);
-}
-
-button:hover {
-    background: var(--secondary-color);
-    transform: scale(1.02);
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-/* Loading Animation */
-#loading {
-    display: none;
-    color: #e67e22;
-    font-weight: 500;
-    margin-top: 1rem;
-}
-
-/* Output Section */
-.output {
-    display: none;
-    margin-top: var(--spacing-unit);
-    padding: var(--spacing-unit);
-    border-radius: var(--radius);
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-}
-
-.output h2 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    margin-bottom: var(--spacing-unit);
-}
-
-/* Download Button */
-#downloadBtn {
-    background: #28a745;
-    display: none;
-}
-
-#downloadBtn:hover {
-    background: #218838;
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-    .container {
-        padding: var(--spacing-unit);
+    if (!syllabusFile || !posFile) {
+        alert('Please upload both syllabus and POs files.');
+        return;
     }
 
-    h1 {
-        font-size: 1.5rem;
-    }
+    const loadingDiv = document.getElementById('loading');
+    loadingDiv.style.display = 'block';
+    document.getElementById('output').style.display = 'none';
 
-    button {
-        padding: 0.8rem;
-        font-size: 0.9rem;
+    try {
+        const formData = new FormData();
+        formData.append('syllabus', syllabusFile);
+        formData.append('pos', posFile);
+        formData.append('numQuestions', numQuestions);
+
+        const response = await fetch('http://localhost:5000/generate', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Backend request failed');
+        }
+
+        const data = await response.json();
+        displayQuestions(data.questions);
+
+        const outputDiv = document.getElementById('output');
+        const downloadBtn = document.getElementById('downloadBtn');
+        outputDiv.style.display = 'block';
+        downloadBtn.style.display = 'block';
+        downloadBtn.onclick = function() {
+            downloadQuestions(data.questions);
+        };
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        loadingDiv.style.display = 'none';
     }
+});
+
+// Display and download functions remain unchanged
+function displayQuestions(questions) {
+    const questionsDiv = document.getElementById('questions');
+    questionsDiv.innerHTML = '';
+    questions.forEach(question => {
+        const p = document.createElement('p');
+        p.textContent = question;
+        questionsDiv.appendChild(p);
+    });
+}
+
+function downloadQuestions(questions) {
+    const textContent = questions.join('\n');
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'question_paper.txt';
+    link.click();
 }
